@@ -91,10 +91,8 @@ void get_resource(int res) {
 
     // 使用できるリソースがないとき、
     // mutexをアンロックして、リソースが開放されるまで待機
-    while (rcount == 0) {
-        pthread_cond_wait(&cvar, &mtx); 
-    }
-
+    while (res > rcount) pthread_cond_wait(&cvar, &mtx); 
+    
     rcount -= res; // リソース取得
     pthread_mutex_unlock(&mtx); // mutex アンロック
 }
@@ -105,8 +103,8 @@ void get_resource(int res) {
 void release_resource(int res) {
     pthread_mutex_lock(&mtx); // mutex ロック
 
-    if (rcount == 0) pthread_cond_signal(&cvar);// 待機中のスレッドにシグナルを送る
     rcount += res; // リソース開放
+    pthread_cond_signal(&cvar);// 待機中のスレッドにシグナルを送る
 
     pthread_mutex_unlock(&mtx); // mutex アンロック
 }
